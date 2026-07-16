@@ -1,9 +1,9 @@
-import { ApolloServer } from '@apollo/server';
-import { startStandaloneServer } from '@apollo/server/standalone';
+import { ApolloServer } from "@apollo/server";
+import { startStandaloneServer } from "@apollo/server/standalone";
 const users = [
-  { id: 1, name: "John Doe", age: 30, isMarried: true },
-  { id: 1, name: "Jane Smith", age: 31, isMarried: true },
-  { id: 1, name: "Alice Jason", age: 32, isMarried: false },
+  { id: "1", name: "John Doe", age: 30, isMarried: true },
+  { id: "2", name: "Jane Smith", age: 31, isMarried: true },
+  { id: "3", name: "Alice Jason", age: 32, isMarried: false },
 ];
 const typeDefs = `type Query {
 getUsers:[User]
@@ -26,17 +26,36 @@ const resolvers = {
     },
     getUserById: (parent, args) => {
       const id = args.id;
-      return users.find((user) => {
-        user.id === id ? user : `User does not exist`;
-      });
+      const matchedUser = users.find((user) => user.id === id);
+      return matchedUser || null;
     },
   },
 
   Mutation: {
-    createUser: (parent, args)=>{
-        const {name, age, isMarried}=args
-        const newUser={id: ((users.length)+1).toString, name, age, isMarried}
-        users.push(newUser)
+    createUser: (parent, args) => {
+      const { name, age, isMarried } = args;
+      const newUser = {
+        id: (users.length + 1).toString(),
+        name,
+        age,
+        isMarried,
+      };
+      users.push(newUser);
+      console.log(newUser);
+      return newUser;
+    },
+    updateUserById: (parent, args) => {
+      const { id, name, age, isMarried } = args;
+      const index = users.findIndex((user) => user.id === index);
+      if (index === -1) return null;
+      const updateUser = {
+        ...users[index],
+        ...(name !== undefined && { name }),
+        ...(age !== undefined && { age }),
+        ...(isMarried !== undefined && { isMarried }),
+      };
+      users[index] = updatedUser;
+      return updatedUsers;
     },
   },
 };
