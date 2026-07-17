@@ -40,9 +40,10 @@ const CREATE_USER = gql`
 //Resolver returns data object.
 // GraphQL query decides visible fields.
 // Client receives exactly those selected fields.
+//$ means graphQL variable, a placeholder value pass at
 const UPDATE_USER_BY_ID = gql`
-  mutation UpdateUser($id: ID!) {
-    updateUserById(name: $name, age: $age, isMarried: $isMarried) {
+  mutation UpdateUser($id: ID!, $name:String, $age: Int, $isMarried: Boolean) {
+    updateUserById(id:$id, name: $name, age: $age, isMarried: $isMarried) {
       id
       name
       age
@@ -50,6 +51,31 @@ const UPDATE_USER_BY_ID = gql`
     }
   }
 `;
+type User = {
+id: string;
+name: string;
+age: number;
+isMarried: boolean;
+};
+type UserPatch = {
+  name?: string;
+  age?: number;
+  isMarried?: boolean;
+};
+type GetUsersData = {
+getUsers: User[];
+};
+
+type UpdateUserByIdData = {
+updateUserById: User | null;
+};
+
+type UpdateUserByIdVars = {
+id: string;
+name?: string;
+age?: number;
+isMarried?: boolean;
+};
 function App() {
   const [choseId, setChoseId] = useState<string>("");
   const [newUserName, setNewUserName] = useState<string>("");
@@ -71,11 +97,11 @@ function App() {
       variables: { name: newUserName, age: Number(age), isMarried: false },
     });
   };
-  const [updateUserById] = useMutation(UPDATE_USER_BY_ID, {
+  const [updateUserById] = useMutation<UpdateUserByIdData,UpdateUserByIdVars>(UPDATE_USER_BY_ID, {
     update(cache, { data: cacheData }) {
       const updated = cacheData?.updateUserById;
       if (!updated) return;
-      const existingData = cache.readQuery({ query: GET_USERS });
+      const existingData = cache.readQuery<GetUsersData>({ query: GET_USERS });
       if (!existingData?.getUsers) return;
       cache.writeQuery({
         query: GET_USERS,
@@ -87,6 +113,14 @@ function App() {
       });
     },
   });
+  const handleUpdateUser = async (id: string, patch:UserPatch) => {
+    console.log("patch", patch);
+    updateUserById({
+      variables: {id, ...patch},
+    });
+  };
+//UpdateUserByIdData is response shape from the server, comes back in result.data
+//UpdateUserByIdVars is input shape send to server
 // Reads current users from Apollo cache.
 // Replaces only the user with matching id.
 // Writes updated users list back to GET_USERS cache.
@@ -137,8 +171,8 @@ function App() {
         </div>
         <h1>All users</h1>
         <div>
-          {data?.getUsers.map((user) => (
-            <User user={user} key={user.id} />
+          {data?.getUsers?.map((user) => (
+            <User user={user} key={user.id} onSaveButton={handleUpdateUser}/>
           ))}
         </div>
       </section>
