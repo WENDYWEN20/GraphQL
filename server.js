@@ -10,7 +10,8 @@ getUsers:[User]
 getUserById(id: ID!): User }
 
 type Mutation {
-createUser(name:String!, age: Int!, isMarried: Boolean!): User}
+createUser(name:String!, age: Int!, isMarried: Boolean!): User
+updateUserById(id: ID!, name:String, age: Int, isMarried: Boolean): User}
 
 type User{
 id: ID
@@ -46,16 +47,16 @@ const resolvers = {
     },
     updateUserById: (parent, args) => {
       const { id, name, age, isMarried } = args;
-      const index = users.findIndex((user) => user.id === index);
+      const index = users.findIndex((user) => user.id === id);
       if (index === -1) return null;
-      const updateUser = {
+      const updatedUser = {
         ...users[index],
         ...(name !== undefined && { name }),
         ...(age !== undefined && { age }),
         ...(isMarried !== undefined && { isMarried }),
       };
       users[index] = updatedUser;
-      return updatedUsers;
+      return updatedUser;
     },
   },
 };
